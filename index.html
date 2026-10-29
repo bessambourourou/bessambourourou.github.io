@@ -1,5 +1,4 @@
 <!doctype html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -424,9 +423,26 @@ const ic={
   gh:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.18 1.83 1.18 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>',
   mail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>',
   web:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>'};
-$('#chan').innerHTML = [['mail','Email',PROFILE.email?'mailto:'+PROFILE.email:''],['li','LinkedIn',PROFILE.linkedin],['gh','GitHub',PROFILE.github]]
-  .map(([i,l,u])=> u ? `<a class="glass" href="${encodeURI(u)}" ${u.startsWith('mailto:')?'':'target="_blank" rel="noopener noreferrer"'}>${ic[i]}<span>${l}${u.startsWith('mailto:')?' · '+esc(PROFILE.email):''}</span></a>`
+$('#chan').innerHTML = [['mail','Email',PROFILE.email?'mailto:'+PROFILE.email+'?subject='+encodeURIComponent('Portfolio enquiry'):''],['li','LinkedIn',PROFILE.linkedin],['gh','GitHub',PROFILE.github]]
+  .map(([i,l,u])=> u ? `<a class="glass" href="${u.startsWith('mailto:')?u:encodeURI(u)}" ${u.startsWith('mailto:')?'':'target="_blank" rel="noopener noreferrer"'}>${ic[i]}<span>${l}${u.startsWith('mailto:')?' · '+esc(PROFILE.email):''}</span></a>`
                      : `<div class="glass" aria-disabled="true">${ic[i]}<span>${l} <em>(coming soon)</em></span></div>`).join('');
+const mailA=$('#chan a[href^="mailto:"]');
+if(mailA){
+  const lab=$('span',mailA), orig=lab.textContent;
+  mailA.addEventListener('click',e=>{
+    e.preventDefault();
+    const url=mailA.getAttribute('href');
+    try{(window.top||window).location.href=url}catch(_){location.href=url}
+    /* If no mail app opened (page still focused), copy the address instead */
+    setTimeout(async()=>{
+      if(document.visibilityState==='visible'&&document.hasFocus()){
+        let ok=false;try{await navigator.clipboard.writeText(PROFILE.email);ok=true}catch(_){}
+        lab.textContent=ok?'Address copied — paste it into your mail app':'Email: '+PROFILE.email;
+        setTimeout(()=>lab.textContent=orig,4000);
+      }
+    },900);
+  });
+}
 $('#yr').textContent=new Date().getFullYear();
 
 /* nav */
